@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Account Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+        }
+        h1 {
+            font-size: 28px;
+        }
+        input {
+            margin: 5px;
+            padding: 5px;
+        }
+        button {
+            padding: 6px 10px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Bank Account Management</h1>
+
+    <div class="section">
+        <h3>Create Account</h3>
+        <input type="text" id="holderName" placeholder="Holder Name" />
+        <input type="number" id="initialBalance" placeholder="Initial Balance" />
+        <button onclick="createAccount()">Create</button>
+        <p id="createResult"></p>
+    </div>
+
+    <div class="section">
+        <h3>Deposit Amount</h3>
+        <input type="number" id="depositId" placeholder="Account ID" />
+        <input type="number" id="depositAmount" placeholder="Amount" />
+        <button onclick="depositAmount()">Deposit</button>
+        <p id="depositResult"></p>
+    </div>
+
+    <div class="section">
+        <h3>Withdraw Amount</h3>
+        <input type="number" id="withdrawId" placeholder="Account ID" />
+        <input type="number" id="withdrawAmount" placeholder="Amount" />
+        <button onclick="withdrawAmount()">Withdraw</button>
+        <p id="withdrawResult"></p>
+    </div>
+
+    <div class="section">
+        <h3>View Account Info</h3>
+        <input type="number" id="viewId" placeholder="Account ID" />
+        <button onclick="viewAccount()">View</button>
+        <p id="viewResult"></p>
+    </div>
+
+    <div class="section">
+        <h3>Delete Account</h3>
+        <input type="number" id="deleteId" placeholder="Account ID" />
+        <button onclick="deleteAccount()">Delete</button>
+        <p id="deleteResult"></p>
+    </div>
+
+    <script>
+        const baseUrl = "http://localhost:8080/account"; // Update port if different
+
+        async function createAccount() {
+            const name = document.getElementById("holderName").value;
+            const balance = parseFloat(document.getElementById("initialBalance").value);
+
+            const resultEl = document.getElementById("createResult");
+
+            try {
+                const res = await fetch(`${baseUrl}/create`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ account_holder_name: name, account_balance: balance })
+                });
+
+                if (!res.ok) throw new Error("Creation failed");
+
+                const data = await res.json();
+                resultEl.innerHTML = `✅ Account Created. ID: ${data.account_number}`;
+                resultEl.className = "success";
+            } catch (err) {
+                resultEl.innerHTML = "❌ Account creation failed";
+                resultEl.className = "error";
+            }
+        }
+
+        async function depositAmount() {
+            const id = document.getElementById("depositId").value;
+            const amount = document.getElementById("depositAmount").value;
+            const resultEl = document.getElementById("depositResult");
+
+            try {
+                const res = await fetch(`${baseUrl}/deposit/${id}/${amount}`, { method: "PUT" });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                resultEl.innerHTML = `✅ Deposited! New Balance: ₹${data.account_balance}`;
+                resultEl.className = "success";
+            } catch (err) {
+                resultEl.innerHTML = "❌ Deposit failed";
+                resultEl.className = "error";
+            }
+        }
+
+        async function withdrawAmount() {
+            const id = document.getElementById("withdrawId").value;
+            const amount = document.getElementById("withdrawAmount").value;
+            const resultEl = document.getElementById("withdrawResult");
+
+            try {
+                const res = await fetch(`${baseUrl}/withdraw/${id}/${amount}`, { method: "PUT" });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                resultEl.innerHTML = `✅ Withdrawn! New Balance: ₹${data.account_balance}`;
+                resultEl.className = "success";
+            } catch (err) {
+                resultEl.innerHTML = "❌ Withdrawal failed";
+                resultEl.className = "error";
+            }
+        }
+
+        async function viewAccount() {
+            const id = document.getElementById("viewId").value;
+            const resultEl = document.getElementById("viewResult");
+
+            try {
+                const res = await fetch(`${baseUrl}/${id}`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                resultEl.innerHTML = `✅ ID: ${data.account_number}, Name: ${data.account_holder_name}, Balance: ₹${data.account_balance}`;
+                resultEl.className = "success";
+            } catch (err) {
+                resultEl.innerHTML = "❌ Account not found";
+                resultEl.className = "error";
+            }
+        }
+
+        async function deleteAccount() {
+            const id = document.getElementById("deleteId").value;
+            const resultEl = document.getElementById("deleteResult");
+
+            try {
+                const res = await fetch(`${baseUrl}/delete/${id}`, { method: "DELETE" });
+                if (!res.ok) throw new Error();
+                resultEl.innerHTML = "✅ Account deleted";
+                resultEl.className = "success";
+            } catch (err) {
+                resultEl.innerHTML = "❌ Delete failed";
+                resultEl.className = "error";
+            }
+        }
+    </script>
+
+</body>
+</html>
